@@ -54,22 +54,23 @@ fn parse_bdict<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
     let mut vec = vec!();
     let mut curr = inp.slice_from(1);;
     loop {
-        let (c, dict_key) =
+        let dict_key =
             match parse_bstr(curr) {
                 Err(e) => return Err(e),
-                Ok((rem, bobj)) => (rem, bobj),
+                Ok((rem, bobj)) => {
+                    curr = rem;
+                    bobj
+                }
             };
 
-        curr = c;
-
-        let (c, bobj) =
+        let bobj =
             match inc_parse(curr) {
                 Err(e) => return Err(e),
-                Ok((rem, bobj)) => (rem, bobj),
+                Ok((rem, bobj)) => {
+                    curr = rem;
+                    vec.push((dict_key, bobj));
+                }
             };
-
-        curr = c;
-        vec.push((dict_key, bobj));
 
         if curr[0] == 'e' {
             curr = curr.slice_from(1);
@@ -88,14 +89,13 @@ fn parse_blist<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
     let mut vec = vec!();
     let mut curr = inp.slice_from(1);;
     loop {
-        let (c, bobj) =
-            match inc_parse(curr) {
-                Err(e) => return Err(e),
-                Ok((rem, bobj)) => (rem, bobj),
-            };
-
-        curr = c;
-        vec.push(bobj);
+        match inc_parse(curr) {
+            Err(e) => return Err(e),
+            Ok((rem, bobj)) => {
+                curr = rem;
+                vec.push(bobj);
+            }
+        };
 
         if curr[0] == 'e' {
             curr = curr.slice_from(1);
