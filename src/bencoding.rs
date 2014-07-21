@@ -34,7 +34,7 @@ pub fn parse(inp: String) -> ParseResult<BObj> {
     }
 }
 
-fn inc_parse<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
+fn inc_parse(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     match inp {
         s@['i', ..rest] => parse_bint(s),
         s@['l', ..rest] => parse_blist(s),
@@ -44,7 +44,7 @@ fn inc_parse<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
     }
 }
 
-fn parse_bdict<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
+fn parse_bdict(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     if inp[0] != 'd' {
         return Err(ParseError::err("BDict is malformed (must start with 'd')"));
     }
@@ -79,7 +79,7 @@ fn parse_bdict<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
     Ok((curr, BDict(vec)))
 }
 
-fn parse_blist<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
+fn parse_blist(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     if inp[0] != 'l' {
         return Err(ParseError::err("BList is malformed (must start with 'l')"));
     }
@@ -104,7 +104,7 @@ fn parse_blist<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
     Ok((curr, BList(vec)))
 }
 
-fn parse_bint<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
+fn parse_bint(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     if inp[0] != 'i' {
         return Err(ParseError::err("BInt is malformed (must start with 'i')"));
     }     
@@ -125,7 +125,7 @@ fn parse_bint<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
     Ok( (inp.slice_from(i+1), BInt(n)) )
 }
 
-fn parse_bstr<'a>(inp: &'a [char]) -> ParseResult<(&'a [char], BObj)> {
+fn parse_bstr(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     let mut i = 0;
     while i < inp.len() && inp[i].is_ascii() && inp[i].is_digit() {
         i += 1;
