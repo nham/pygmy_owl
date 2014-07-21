@@ -34,6 +34,8 @@ pub fn parse(inp: String) -> ParseResult<BObj> {
     }
 }
 
+// parse something from the input stream. upon success, return the remaining input
+// and what was parsed. otherwise, return the parse error.
 fn inc_parse(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     match inp {
         s@['i', ..] => parse_bint(s),
@@ -52,6 +54,8 @@ fn parse_bdict(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     let mut vec = vec!();
     let mut curr = inp.slice_from(1);;
     loop {
+        // try to parse a key value pair. a key is a string, a value is any
+        // bencoding object.
         let dict_key =
             match parse_bstr(curr) {
                 Err(e) => return Err(e),
@@ -69,6 +73,7 @@ fn parse_bdict(inp: &[char]) -> ParseResult<(&[char], BObj)> {
             }
         }
 
+        // check if we've reached the end of the dictionary
         if curr[0] == 'e' {
             curr = curr.slice_from(1);
             break;
@@ -131,7 +136,8 @@ fn parse_bstr(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     }
 
     if i == 0 {
-        return Err(ParseError::err("BString is malformed (missing length)")); } else if inp[i] != ':' {
+        return Err(ParseError::err("BString is malformed (missing length)"));
+    } else if inp[i] != ':' {
         return Err(ParseError::err("BString is malformed (missing colon)"));
     }
     
