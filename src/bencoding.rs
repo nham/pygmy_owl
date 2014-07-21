@@ -1,5 +1,3 @@
-use std::char::len_utf8_bytes;
-
 #[deriving(Show)]
 enum BObj {
     BStr(String),
@@ -21,7 +19,7 @@ impl ParseError {
 
 type ParseResult<T> = Result<T, ParseError>;
 
-fn parse(inp: String) -> ParseResult<BObj> {
+pub fn parse(inp: String) -> ParseResult<BObj> {
     let mut chars: Vec<char> = inp.as_slice().chars().collect();
 
     match inc_parse(chars.as_slice()) {
@@ -160,18 +158,13 @@ fn test_parse_bstr() {
     assert!(parse_bstr(['0', ':']).is_ok());
     assert!(parse_bstr(['5', ':', 'h', 'e', 'l', 'l', 'o']).is_ok());
     assert!(parse_bstr(['5',':','h','e','l','l','o','4',':','h','e','l','l']).is_ok());
-    assert!(parse_bstr(['5',':','h','e','l','l']).is_ok());
-    assert!(parse_bstr("10:ΣigmaϿζeta").is_ok());
+    assert!(parse_bstr(['5',':','h','e','l','l']).is_err());
+    assert!(parse_bstr(['1','0',':','Σ','i','g','m','a','Ͽ','ζ','e','t','a']).is_ok());
 }
 
-fn main() {
-    println!("{}", parse_bint(['i','3','4','5','e']));
-    println!("{}", parse_bint(['i','-','3','4','5','e']));
-    println!("{}", parse_bint(['i','-','3','4','5','e','4',':','w','h','a','t']));
-
-    println!("{}", parse("i345e".to_string()));
-    println!("{}", parse("i-345e".to_string()));
-    println!("{}", parse("i-345e4:what".to_string()));
-    println!("{}", parse("l4:turn4:down3:for4:whate".to_string()));
-    println!("{}", parse("d4:turni3456e4:downi-12e3:for4:whate".to_string()));
+#[test]
+fn test_parse_bint(){
+    assert!(parse_bint(['i','3','4','5','e']).is_ok());
+    assert!(parse_bint(['i','-','3','4','5','e']).is_ok());
+    assert!(parse_bint(['i','-','3','4','5','e','4',':','w','h','a','t']).is_ok());
 }
