@@ -20,7 +20,7 @@ impl ParseError {
 type ParseResult<T> = Result<T, ParseError>;
 
 pub fn parse(inp: String) -> ParseResult<BObj> {
-    let mut chars: Vec<char> = inp.as_slice().chars().collect();
+    let chars: Vec<char> = inp.as_slice().chars().collect();
 
     match inc_parse(chars.as_slice()) {
         Err(e) => Err(e),
@@ -36,10 +36,10 @@ pub fn parse(inp: String) -> ParseResult<BObj> {
 
 fn inc_parse(inp: &[char]) -> ParseResult<(&[char], BObj)> {
     match inp {
-        s@['i', ..rest] => parse_bint(s),
-        s@['l', ..rest] => parse_blist(s),
-        s@['d', ..rest] => parse_bdict(s),
-        s@[d, ..rest] if d.is_ascii() && d.is_digit() => parse_bstr(s),
+        s@['i', ..] => parse_bint(s),
+        s@['l', ..] => parse_blist(s),
+        s@['d', ..] => parse_bdict(s),
+        s@[d, ..] if d.is_ascii() && d.is_digit() => parse_bstr(s),
         _ => Err(ParseError::err("Invalid data")),
     }
 }
@@ -61,14 +61,13 @@ fn parse_bdict(inp: &[char]) -> ParseResult<(&[char], BObj)> {
                 }
             };
 
-        let bobj =
-            match inc_parse(curr) {
-                Err(e) => return Err(e),
-                Ok((rem, bobj)) => {
-                    curr = rem;
-                    vec.push((dict_key, bobj));
-                }
-            };
+        match inc_parse(curr) {
+            Err(e) => return Err(e),
+            Ok((rem, bobj)) => {
+                curr = rem;
+                vec.push((dict_key, bobj));
+            }
+        }
 
         if curr[0] == 'e' {
             curr = curr.slice_from(1);
