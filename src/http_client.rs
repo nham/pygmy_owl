@@ -51,7 +51,7 @@ pub struct RequestWriter<S = TcpStream> {
     stream: Option<BufferedStream<S>>,
 
     /// The originating IP address of the request.
-    remote_addr: Option<SocketAddr>,
+    remote_addr: SocketAddr,
 
     /// The host name and IP address that the request was sent to
     host: Host,
@@ -72,24 +72,15 @@ impl<S = TcpStream> RequestWriter<S> {
 
         let sa = SocketAddr { ip: addr.unwrap(), port: port };
 
-        RequestWriter { stream: None, remote_addr: Some(sa), 
+        Ok(RequestWriter { stream: None, remote_addr: sa,
                         host: Host { name: hostname, port: port },
-                        path: path }
+                        path: path })
 
     }
 }
 
 
 impl<S: Reader + Writer = TcpStream> RequestWriter<S> {
-    /// Connect to the remote host if not already connected.
-    pub fn try_connect(&mut self) -> IoResult<()> {
-        if self.stream.is_none() {
-            self.connect()
-        } else {
-            Ok(())
-        }
-    }
-
     /// Connect to the remote host; fails if already connected.
     /// Returns ``true`` upon success and ``false`` upon failure (also use conditions).
     pub fn connect(&mut self) -> IoResult<()> {
@@ -103,20 +94,7 @@ impl<S: Reader + Writer = TcpStream> RequestWriter<S> {
         Ok(())
     }
 
-    /// Write the Request-Line and headers of the response, if we have not already done so.
-    pub fn try_write_headers(&mut self) -> IoResult<()> {
-        if !self.headers_written {
-            self.write_headers()
-        } else {
-            Ok(())
-        }
-    }
-
     pub fn write_headers(&mut self) -> IoResult<()> {
-        // This marks the beginning of the response (RFC2616 §5)
-        if self.headers_written {
-            fail!("RequestWriter.write_headers() called, but headers already written");
-        }
         if self.stream.is_none() {
             try!(self.connect());
         }
@@ -127,18 +105,21 @@ impl<S: Reader + Writer = TcpStream> RequestWriter<S> {
             "GET {}{}{} HTTP/1.1\r\n",
             path.path.as_slice(),
             if path.query.len() > 0 { "?" } else { "" },
-            path.query_to_str()));
+            path.query_to_string()));
 
-        try!(self.headers.write_all(self.stream.get_mut_ref()));
-        self.headers_written = true;
+        try!(write!(self.stream.get_mut_ref() as &mut Writer,
+            "Host: {}:{}\r\n",
+            self.host.name, self.host.port));
+
         Ok(())
-
-
     }
 }
 
 
 fn main() {
+    let path = UrlPath { path: "/".to_string(), query: vec!() };
+    let mut rw = RequestWriter::new("127.0.0.1".to_string(), 8012, path);
+    /*
     let mut stream = TcpStream::connect("127.0.0.1", 8012);
 
     let req_str = "GET / HTTP/1.1";
@@ -160,5 +141,6 @@ fn main() {
             println!("{} {} {}", buf[0], buf[1], buf[2]);
         },
     }
+    */
 }
 
